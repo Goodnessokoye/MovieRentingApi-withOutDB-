@@ -8,7 +8,7 @@ const movies = [
   { id: 3, name: "Hroutery holiday", numberInStock: 0 },
 ];
 
-router.get("/api/movies", (req, res) => {
+router.get("/", (req, res) => {
   res.send(movies);
 });
 
@@ -35,7 +35,7 @@ router.delete("/api/movies/:id", (req, res) => {
   res.send(movie);
 });
 
-router.put("/api/movies/:id", (req, res) => {
+router.put("/:id", (req, res) => {
   const movie = movies.find((c) => c.id === parseInt(req.params.id));
   if (!movie)
     return res.status(404).send("The movie with the given Id is not found");
@@ -48,11 +48,12 @@ router.put("/api/movies/:id", (req, res) => {
 });
 
 function validateMovie(movie) {
-  const schema = {
+  const schema = Joi.object({
     name: Joi.string().min(5).max(20).required(),
-  };
+  });
 
-  return Joi.validate(schema, movie);
+  return schema.validate(movie);
+
 }
 
 

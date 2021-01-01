@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router = require ("express").Router();
 
 const users = [
   {
@@ -45,4 +45,4 @@ router.post("/api/user/login", (req, res) => {
     res.send("Login Successful");
 });
 
-module.exports = router;
+module.exports = router
