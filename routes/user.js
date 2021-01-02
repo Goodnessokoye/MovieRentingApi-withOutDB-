@@ -1,5 +1,6 @@
 const express = require("express");
-const router = require ("express").Router();
+const router = require("express").Router();
+
 
 const users = [
   {
@@ -10,19 +11,19 @@ const users = [
   },
 ];
 
-router.get("/api/user", (req, res) => {
-  console.log("....")
+router.get("/", (req, res) => {
+  console.log("....");
   res.send(users);
 });
 
-router.get("/api/user/:id", (req, res) => {
+router.get("/:id", (req, res) => {
   const user = users.find((c) => c.id === parseInt(req.param.id));
   if (!user) return res.send("User with the given id does not exist");
   console.log(user);
   res.send(user);
 });
 
-router.post("/api/user/register", (req, res) => {
+router.post("/register", (req, res) => {
   const user = users.find((c) => c.id === req.body.email);
   if (user) return res.send("User with this email address already exist!");
 
@@ -34,15 +35,23 @@ router.post("/api/user/register", (req, res) => {
   res.send(users);
 });
 
-router.post("/api/user/login", (req, res) => {
+router.post("/login", (req, res) => {
   const user = users.find((c) => c.email === req.body.email);
   if (!user)
     return res.status(404).send("The user with the email does not exist!");
-  console.log("...");
+const {error} = validate(req.body);
+  if (error) return res.status(401).send(error.details[0].message);
 
   (user.email = req.body.email),
     (user.password = req.body.password),
     res.send("Login Successful");
 });
 
-module.exports = router
+function validate(user) {
+  const schema = Joi.object({
+    name: Joi.string().min(5).max(20).required(),
+  });
+  return schema.validate(user);
+}
+
+module.exports = router;
