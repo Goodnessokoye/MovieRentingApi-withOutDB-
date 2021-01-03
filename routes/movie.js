@@ -80,9 +80,15 @@ router.post("/rent", (req, res) => {
   const movie = movies.find((c) => c.movieId === parseInt(req.body.movieId));
   if (!movie)
     return res.status(404).send("The movie with the given Id is not found");
+       if (movie.numberInStock === 0)
+         return res
+           .status(401)
+           .send("The movie you want to rent is unavaliable");
 
   const { error } = validateRental(req.body);
   if (error) return res.status(401).send(error.details[0].message);
+
+
 
   const rental = {
     id: rentals.length + 1,
@@ -119,7 +125,7 @@ function validateRental(rental) {
     rentalFee: Joi.number().min(4).max(10000000000000000),
     daliyRentalRate: Joi.number().required(),
     rentalFee: Joi.number().required(),
-        movieId: Joi.number().required(),
+    movieId: Joi.number().required(),
   });
 
   return schema.validate(rental);
