@@ -29,7 +29,6 @@ const movies = [
 //Rental array
 const rentals = [];
 
-
 //Get all movies
 router.get("/", (req, res) => {
   res.send(movies);
@@ -37,6 +36,7 @@ router.get("/", (req, res) => {
 
 //Add a movie
 router.post("/", (req, res) => {
+
   const { error } = validateMovie(req.body);
   if (error) return res.status(401).send(error.details[0].message);
 
@@ -67,28 +67,20 @@ router.put("/:movieId", (req, res) => {
       .status(404)
       .send("The movie with the given movieId is not found");
 
-  const { error } = validateMovie(req.body);
-  if (error) return res.status(401).send(error.details[0].message);
-
   movie.name = req.body.name;
   res.send(movie);
 });
-
 
 //Rent
 router.post("/rent", (req, res) => {
   const movie = movies.find((c) => c.movieId === parseInt(req.body.movieId));
   if (!movie)
     return res.status(404).send("The movie with the given Id is not found");
-       if (movie.numberInStock === 0)
-         return res
-           .status(401)
-           .send("The movie you want to rent is unavaliable");
+  if (movie.numberInStock === 0)
+    return res.status(401).send("The movie you want to rent is unavaliable");
 
   const { error } = validateRental(req.body);
   if (error) return res.status(401).send(error.details[0].message);
-
-
 
   const rental = {
     id: rentals.length + 1,
@@ -118,7 +110,6 @@ router.delete("/rent/:id", (req, res) => {
   res.send(rental);
 });
 
-
 //Rental validation
 function validateRental(rental) {
   const schema = Joi.object({
@@ -129,18 +120,17 @@ function validateRental(rental) {
   });
 
   return schema.validate(rental);
-
-};
+}
 
 //Movie validation
 function validateMovie(movie) {
   const schema = Joi.object({
     name: Joi.string().min(5).max(20).required(),
-    daliyRentalRate: Joi.number().required(),
+    daliyRentalRate: Joi.number(),
     rentalFee: Joi.number().required(),
-    dailyRentalRate: Joi.number().required()
+    numberInStock: Joi.number(),
   });
 
   return schema.validate(movie);
-};
-  module.exports = router;
+}
+module.exports = router;

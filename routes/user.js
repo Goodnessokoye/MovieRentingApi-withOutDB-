@@ -1,7 +1,6 @@
 const express = require("express");
 const router = require("express").Router();
-
-
+const Joi = require("joi");
 
 /* Built a simple Login without Bcrypt and jwt */
 
@@ -19,27 +18,29 @@ router.get("/", (req, res) => {
   res.send(users);
 });
 
-//Get user by Id
+//Get user by userId
 router.get("/:userId", (req, res) => {
-  const user = users.find((c) => c.userId === parseInt(req.param.userId));
+  const user = users.find((c) => c.userId === parseInt(req.params.userId));
   if (!user) return res.send("User with the given userId does not exist");
-  console.log(user);
   res.send(user);
 });
 
 //Sign up
 router.post("/register", (req, res) => {
-  const user = users.find((c) => c.userId === req.body.email);
-  if (user) return res.send("User with this email address already exist!");
+  const email = users.find((c) => c.email === req.body.email);
+  if (email) return res.send("User with this email address already exist!");
 
   const { error } = validate(req.body);
   if (error) return res.status(401).send(error.details[0].message);
 
-  (user.userId = users.length + 1),
-    (user.name = req.body.name),
-    (user.email = req.body.email),
-    (user.password = req.body.password),
-    users.push(user);
+  const user = {
+    userId: users.length + 1,
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password,
+  };
+
+  users.push(user);
   res.send(users);
 });
 
@@ -59,7 +60,9 @@ router.post("/login", (req, res) => {
 //User validation
 function validate(user) {
   const schema = Joi.object({
-    name: Joi.string().min(5).max(20).required(),
+    name: Joi.string().min(5).max(20),
+    email: Joi.string().required(),
+    password: Joi.number().required(),
   });
   return schema.validate(user);
 }
