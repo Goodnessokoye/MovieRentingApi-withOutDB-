@@ -1,79 +1,101 @@
+const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
 
-//Movie Array
-const movies = [
-  {
-    movieId: 1,
-    name: "it is the end",
-    numberInStock: 2,
-    dailyRentalRate: 3,
-    rentalFee: 100,
-  },
-  {
-    movieId: 2,
-    name: "End time",
-    numberInStock: 1,
-    dailyRentalRate: 3,
-    rentalFee: 100,
-  },
-  {
-    movieId: 3,
-    name: "Hroutery holiday",
-    numberInStock: 0,
-    dailyRentalRate: 3,
-    rentalFee: 100,
-  },
-];
-//Rental array
-const rentals = [];
+//Movie model
+const Movie = mongoose.model(
+  "Movie",
+  new mongoose.Schema({
+    name: {
+      type: String,
+      required: true,
+      minlength: 5,
+      maxlength: 255,
+    },
+    numberInStock: {
+      type: Number,
+      required: true,
+    },
+    dailyRentalRate: {
+      type: Number,
+      required: false,
+    },
+    rentalFee: {
+      type: Number,
+      required: true,
+    },
+  })
+);
+
+//Rental model
+const Rental = mongoose.model(
+  "Rental",
+  new mongoose.Schema({
+    // name: {
+    //   type: String,
+    //   required: true,
+    //   minlength: 5,
+    //   maxlength: 255,
+    // },
+    rentalFee: {
+      type: Number,
+      required: true,
+      minlength: 0,
+      maxlength: 255,
+    },
+    daliyRentalRate: {
+      type: Number,
+      required: true,
+      minlength: 0,
+      maxlength: 255,
+    },
+  })
+);
 
 //Get all movies
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
+  const movies = await Movie.find().sort("name");
   res.send(movies);
 });
 
 //Add a movie
-router.post("/", (req, res) => {
-
+router.post("/", async (req, res) => {
   const { error } = validateMovie(req.body);
   if (error) return res.status(401).send(error.details[0].message);
 
-  const movie = {
-    movieId: movies.length + 1,
+  let movie = new Movie({
     name: req.body.name,
     numberInStock: req.body.numberInStock,
-  };
-  movies.push(movie);
-  res.send(movies);
+    rentalFee: req.body.rentalFee,
+  });
+  movie = await movie.save();
+  res.send(movie);
 });
 
 //Delete a movie
-router.delete("/:movieId", (req, res) => {
-  const movie = movies.find((c) => c.movieId === parseInt(req.params.movieId));
+router.delete("/:movieId", async (req, res) => {
+  const movie = await Movie.deleteOne(req.params._id);
+
   if (!movie) return res.status(404).send("The movieId is not found");
-
-  const index = movies.indexOf(movie);
-  movies.splice(index, 1);
-
   res.send(movie);
 });
+
 //Update a movie
-router.put("/:movieId", (req, res) => {
-  const movie = movies.find((c) => c.movieId === parseInt(req.params.movieId));
+router.put("/:movieId", async (req, res) => {
+  const movie = await Movie.updateOne(req.params._id, {
+    name: req.body.name,
+  });
   if (!movie)
     return res
       .status(404)
       .send("The movie with the given movieId is not found");
-
-  movie.name = req.body.name;
   res.send(movie);
 });
 
 //Rent
-router.post("/rent", (req, res) => {
-  const movie = movies.find((c) => c.movieId === parseInt(req.body.movieId));
+router.post("/rent", async (req, res) => {
+  const movie = await Movie.findOne(req.body._id);
   if (!movie)
     return res.status(404).send("The movie with the given Id is not found");
   if (movie.numberInStock === 0)
@@ -82,41 +104,37 @@ router.post("/rent", (req, res) => {
   const { error } = validateRental(req.body);
   if (error) return res.status(401).send(error.details[0].message);
 
-  const rental = {
-    id: rentals.length + 1,
-    movieId: req.body.movieId,
+  let rental = new Rental({
+    id: req.body.id,
     rentalFee: req.body.rentalFee,
     daliyRentalRate: req.body.daliyRentalRate,
-  };
-  rentals.push(rental);
+  });
 
-  movie.numberInStock--;
-  res.send(movie);
+  rental = await rental.save();
+  Movie.numberInStock--;
+  res.send(rental);
 });
 
 //Get all Rents
-router.get("/rent", (req, res) => {
-  res.send(rentals);
+router.get("/rent", async (req, res) => {
+  const rental = await Rental.find().sort("name");
+  res.send(rental);
 });
 
 //Delete rent by Id
-router.delete("/rent/:id", (req, res) => {
-  const rental = rentals.find((c) => c.id === parseInt(req.params.id));
+router.delete("/rent/:id", async (req, res) => {
+  const rental = await Rental.deleteOne(req.params._id);
   if (!rental)
     return res.status(404).send("The rental with the given Id is not found");
-
-  const index = rentals.indexOf(rental);
-  rentals.splice(index, 1);
   res.send(rental);
 });
 
 //Rental validation
 function validateRental(rental) {
   const schema = Joi.object({
-    rentalFee: Joi.number().min(4).max(10000000000000000),
+    rentalFee: Joi.number().min(4).max(255),
     daliyRentalRate: Joi.number().required(),
-    rentalFee: Joi.number().required(),
-    movieId: Joi.number().required(),
+    id: Joi.string().required(),
   });
 
   return schema.validate(rental);

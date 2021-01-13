@@ -1,52 +1,68 @@
 const express = require("express");
 const router = require("express").Router();
 const Joi = require("joi");
+const mongoose = require("mongoose");
 
 /* Built a simple Login without Bcrypt and jwt */
 
-const users = [
-  {
-    userId: 1,
-    name: "Goodness",
-    email: "goodnessokoye@gmail.com",
-    password: 00000,
-  },
-];
+const User = mongoose.model(
+  "User",
+  new mongoose.Schema({
+    name: {
+      type: String,
+      required: true,
+      minlength: 5,
+      maxlength: 255,
+      trim: true,
+    },
+    email: {
+      type: String,
+      minlength: 5,
+      maxlength: 255,
+      required: true,
+    },
+    password: {
+      type: Number,
+      required: true,
+      minlength: 5,
+      maxlength: 255,
+    },
+  })
+);
 
 //Get all user
-router.get("/", (req, res) => {
-  res.send(users);
+router.get("/", async (req, res) => {
+  const user = await User.find().sort("name");
+  res.send(user);
 });
 
 //Get user by userId
-router.get("/:userId", (req, res) => {
-  const user = users.find((c) => c.userId === parseInt(req.params.userId));
+router.get("/:userId", async (req, res) => {
+  const user = await User.findOne(req.params._id);
   if (!user) return res.send("User with the given userId does not exist");
   res.send(user);
 });
 
 //Sign up
-router.post("/register", (req, res) => {
-  const email = users.find((c) => c.email === req.body.email);
+router.post("/register", async (req, res) => {
+  const email = await User.findOne({ email: req.body.email });
   if (email) return res.send("User with this email address already exist!");
 
   const { error } = validate(req.body);
   if (error) return res.status(401).send(error.details[0].message);
 
-  const user = {
-    userId: users.length + 1,
+  let user = new User({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
-  };
-
-  users.push(user);
-  res.send(users);
+  });
+  user = await user.save();
+  res.send(user);
 });
 
 //SignIn
-router.post("/login", (req, res) => {
-  const user = users.find((c) => c.email === req.body.email);
+router.post("/login", async (req, res) => {
+  const user = await User.findOne({email: req.body.email});
   if (!user)
     return res.status(404).send("The user with the email does not exist!");
   const { error } = validate(req.body);
