@@ -2,12 +2,14 @@ const mongoose = require("mongoose");
 const express = require("express");
 const movie = require("./routes/movie.js");
 const user = require("./routes/user.js");
+const rental = require("./routes/rental.js");
 const app = require("express")();
 
 app.use(express.json());
 
 app.use("/api/user", user);
 app.use("/api/movie", movie);
+app.use("/api/rental", rental);
 
 mongoose
   .connect("mongodb://localhost/MovieRent", {
