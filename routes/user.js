@@ -2,6 +2,10 @@ const express = require("express");
 const router = require("express").Router();
 const mongoose = require("mongoose");
 const {User, validate} = require("../models/user");
+const bcrypt = require('bcrypt');
+var _ = require("lodash");
+const jwt = require("jsonwebtoken");
+const config = require("config")
 
 /* Built a simple Login without Bcrypt and jwt */
 
@@ -26,26 +30,36 @@ router.post("/register", async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(401).send(error.details[0].message);
 
+
   let user = new User({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
   });
-  user = await user.save();
-  res.send(user);
+
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
+  
+  await user.save();
+  res.send(_.pick(user, ["name", "email"]));
+ 
 });
 
 //SignIn
 router.post("/login", async (req, res) => {
-  const user = await User.findOne({email: req.body.email});
-  if (!user)
-    return res.status(404).send("The user with the email does not exist!");
-  const { error } = validate(req.body);
-  if (error) return res.status(401).send(error.details[0].message);
+    const { error } = validate(req.body);
+    if (error) return res.status(401).send(error.details[0].message);
 
-  (user.email = req.body.email),
-    (user.password = req.body.password),
-    res.send("Login Successful");
+
+  const user = await User.findOne({email: req.body.email});
+  if (!user) return res.status(400).send("Invalid Email Password ");
+
+  const checkPassword = await bcrypt.compare(req.body.password, user.password)
+  if(!checkPassword) return res.status(400).send(" Invalid Email or Password ")
+
+    const token = jwt.sign({_id: user._id}, config.get("jwtPrivateKey"))
+    res.send(token);
+
 });
 
 
