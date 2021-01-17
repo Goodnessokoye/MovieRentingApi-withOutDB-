@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
 const {Movie, validateMovie } = require("../models/movie")
+const auth = require("../middlewares/admin")
+const admin = require("../middlewares/admin")
 
 
 
@@ -27,7 +29,7 @@ router.post("/", async (req, res) => {
 });
 
 //Delete a movie
-router.delete("/:movieId", async (req, res) => {
+router.delete("/:movieId", [auth, admin] , async (req, res) => {
   const movie = await Movie.deleteOne(req.params._id);
 
   if (!movie) return res.status(404).send("The movieId is not found");
