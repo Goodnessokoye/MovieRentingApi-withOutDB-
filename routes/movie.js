@@ -2,20 +2,20 @@ const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
 const {Movie, validateMovie } = require("../models/movie")
-const auth = require("../middlewares/admin")
+const auth = require("../middlewares/auth")
 const admin = require("../middlewares/admin")
 
 
 
 
 //Get all movies
-router.get("/", async (req, res) => {
+router.get("/", auth, async (req, res) => {
   const movies = await Movie.find().sort("name");
   res.send(movies);
 });
 
 //Add a movie
-router.post("/", async (req, res) => {
+router.post("/",[auth, admin], async (req, res) => {
   const { error } = validateMovie(req.body);
   if (error) return res.status(401).send(error.details[0].message);
 
@@ -29,16 +29,15 @@ router.post("/", async (req, res) => {
 });
 
 //Delete a movie
-router.delete("/:movieId", [auth, admin] , async (req, res) => {
-  const movie = await Movie.deleteOne(req.params._id);
-
+router.delete("/:movieId", [auth, admin], async (req, res) => {
+  const movie = await Movie.findByIdAndRemove(req.params.movieId);
   if (!movie) return res.status(404).send("The movieId is not found");
   res.send(movie);
 });
 
 //Update a movie
-router.put("/:movieId", async (req, res) => {
-  const movie = await Movie.updateOne(req.params._id, {
+router.put("/:movieId", [auth,admin], async (req, res) => {
+  const movie = await Movie.findByIdAndUpdate(req.params.movieId, {
     name: req.body.name,
   });
   if (!movie)

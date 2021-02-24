@@ -9,12 +9,13 @@ app.use(express.json());
 
 app.use("/api/user", user);
 app.use("/api/movie", movie);
-app.use("/api/rental", rental);
+app.use("/api/movie/rental", rental);
 
 mongoose
   .connect("mongodb://localhost/MovieRent", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useFindAndModify: false
   })
   .then(() => console.log("connected to mongodb..."))
   .catch((err) => console.error("could not connect to mongodb...", err));

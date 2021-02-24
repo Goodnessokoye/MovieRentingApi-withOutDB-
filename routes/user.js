@@ -15,8 +15,8 @@ router.get("/", auth, async (req, res) => {
 });
 
 //Get user by userId
-router.get("/me", auth, async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password");
+router.get("/:id", auth, async (req, res) => {
+  const user = await User.findById(req.params.id);
   if (!user) return res.send("User with the given userId does not exist");
   res.send(user);
 });

@@ -3,10 +3,11 @@ const express = require("express");
 const router = express.Router();
 const { Rental, validateRental } = require("../models/rental");
 const { Movie, validateMovie } = require("../models/movie");
+const auth = require("../middlewares/auth")
 
 
 //Rent
-router.post("/rent", async (req, res) => {
+router.post("/", async (req, res) => {
   const movie = await Movie.findOne(req.body._id);
   if (!movie)
     return res.status(404).send("The movie with the given Id is not found");
@@ -28,14 +29,14 @@ router.post("/rent", async (req, res) => {
 });
 
 //Get all Rents
-router.get("/rent", async (req, res) => {
+router.get("/", async (req, res) => {
   const rental = await Rental.find().sort("name");
   res.send(rental);
 });
 
 //Delete rent by Id
-router.delete("/rent/:id", async (req, res) => {
-  const rental = await Rental.deleteOne(req.params._id);
+router.delete("/:id", auth, async (req, res) => {
+  const rental = await Rental.findByIdAndDelete(req.params.id);
   if (!rental)
     return res.status(404).send("The rental with the given Id is not found");
   res.send(rental);
