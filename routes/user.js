@@ -15,13 +15,12 @@ router.get("/", [auth, admin], async (req, res) => {
   res.send(users);
 });
 
-
 //Get all active user
-router.post("/reg", [auth, admin ], async (req, res) => {
+router.get("/active", auth, async (req, res) => {
   const users = await User.find({ isActive: true }).sort("name");
   if (!users) return res.status(404).send("No user with an active account");
+  // res.send(_.pick(users, ["name", "email", "isActive"]))
   res.send(users);
-  // res.send(_.pick(users, ["name", "email", "isActive"]));
 });
 
 
