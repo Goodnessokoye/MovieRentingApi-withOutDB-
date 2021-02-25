@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Joi = require("joi");
 
-
 //Movie model
 const Movie = mongoose.model(
   "Movie",
@@ -26,7 +25,7 @@ const Movie = mongoose.model(
       required: true,
     },
   })
-)
+);
 
 //Movie validation
 function validateMovie(movie) {
@@ -39,7 +38,6 @@ function validateMovie(movie) {
 
   return schema.validate(movie);
 }
-
 
 exports.Movie = Movie;
 exports.validateMovie = validateMovie;

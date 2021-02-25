@@ -6,12 +6,6 @@ const Joi = require("joi");
 const Rental = mongoose.model(
   "Rental",
   new mongoose.Schema({
-    // name: {
-    //   type: String,
-    //   required: true,
-    //   minlength: 5,
-    //   maxlength: 255,
-    // },
     rentalFee: {
       type: Number,
       required: true,
@@ -26,7 +20,6 @@ const Rental = mongoose.model(
     },
   })
 );
-
 //Rental validation
 function validateRental(rental) {
   const schema = Joi.object({

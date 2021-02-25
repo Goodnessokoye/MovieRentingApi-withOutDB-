@@ -7,18 +7,38 @@ const router = require("express").Router();
 const mongoose = require("mongoose");
 const { User, validate } = require("../models/user");
 const auth = require("../middlewares/auth");
+const admin = require("../middlewares/admin");
 
 //Get all user
-router.get("/", auth, async (req, res) => {
-  const user = await User.find().sort("name");
-  res.send(user);
+router.get("/", [auth, admin], async (req, res) => {
+  const users = await User.find().sort("name");
+  res.send(users);
 });
 
+
+//Get all active user
+router.post("/reg", [auth, admin ], async (req, res) => {
+  const users = await User.find({ isActive: true }).sort("name");
+  if (!users) return res.status(404).send("No user with an active account");
+  res.send(users);
+  // res.send(_.pick(users, ["name", "email", "isActive"]));
+});
+
+
 //Get user by userId
-router.get("/:id", auth, async (req, res) => {
+router.get("/:id", [auth, admin], async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.send("User with the given userId does not exist");
   res.send(user);
+});
+
+
+
+//Delete or inActive users
+router.put("/:id", [auth, admin], async (req, res) => {
+  const user = await User.findByIdAndUpdate(req.params.id, { isActive: false });
+  if (!user) return res.status(404).send("The user with the id is not found");
+  res.send(_.pick(user, ["name", "email", "isActive"]));
 });
 
 //Sign up

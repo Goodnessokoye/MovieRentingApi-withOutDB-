@@ -3,8 +3,7 @@ const express = require("express");
 const router = express.Router();
 const { Rental, validateRental } = require("../models/rental");
 const { Movie, validateMovie } = require("../models/movie");
-const auth = require("../middlewares/auth")
-
+const auth = require("../middlewares/auth");
 
 //Rent
 router.post("/", async (req, res) => {
@@ -41,7 +40,5 @@ router.delete("/:id", auth, async (req, res) => {
     return res.status(404).send("The rental with the given Id is not found");
   res.send(rental);
 });
-
-
 
 module.exports = router;
