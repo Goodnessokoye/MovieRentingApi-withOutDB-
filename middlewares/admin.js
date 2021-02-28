@@ -2,7 +2,7 @@
 
 module.exports = function (req, res, next) {
   //checking wether the user is admin or have the right to perform some operations
-  if (!req.user.role === "admin") return res.status(403).send("Access denied");
+  if (!req.user.isAdmin) return res.status(403).send("Access denied");
 
   next();
 };

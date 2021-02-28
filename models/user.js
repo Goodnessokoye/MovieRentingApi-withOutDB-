@@ -3,6 +3,7 @@ const config = require("config");
 const express = require("express");
 const Joi = require("joi");
 const mongoose = require("mongoose");
+const { boolean } = require("joi");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -24,11 +25,9 @@ const userSchema = new mongoose.Schema({
     minlength: 5,
     maxlength: 1024,
   },
-  role: {
-    type: String,
-    enum: ["user", "admin"],
-    lowercase: true,
-    // default: "user",
+  isAdmin: {
+    type: Boolean,
+    default: false,
   },
   isActive: {
     type: Boolean,
@@ -38,7 +37,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
-    { _id: this._id, role: this.role ==="admin"},
+    { _id: this._id, isAdmin: this.isAdmin },
     config.get("jwtPrivateKey")
   );
   return token;
@@ -53,7 +52,7 @@ function validate(user) {
     email: Joi.string(),
     password: Joi.string().required(),
     role: Joi.string(),
-    isActive:Joi.boolean()
+    isActive: Joi.boolean(),
   });
   return schema.validate(user);
 }
